@@ -26,7 +26,7 @@ def start(update: Update, context: CallbackContext) -> None:
 
 
 def start_dis(update: Update, context: CallbackContext):
-    res = subprocess.run(["systemctl", "start", "rut_bot.service"])
+    res = subprocess.run(["systemctl", "start", "tom_discord.service"])
     if res.returncode == 0:
         update.message.reply_text("Бот запущен")
     else:
@@ -34,12 +34,12 @@ def start_dis(update: Update, context: CallbackContext):
 
 
 def stop_dis(update: Update, context: CallbackContext):
-    subprocess.run(["systemctl", "stop", "rut_bot.service"])
+    subprocess.run(["systemctl", "stop", "tom_discord.service"])
     update.message.reply_text("Бот остановлен")
 
 
 def status_dis(update: Update, context: CallbackContext):
-    res = subprocess.run(["systemctl", "is-active", "rut_bot.service"], stdout=subprocess.PIPE, text=True)
+    res = subprocess.run(["systemctl", "is-active", "tom_discord.service"], stdout=subprocess.PIPE, text=True)
     print(res.returncode)
     if res.returncode == 0:
         update.message.reply_text("🟢Активен")
