@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 
 from telegram import Update, ReplyKeyboardMarkup
 import telegram.ext
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 def start(update: Update, context: CallbackContext) -> None:
-    keyboard = [['Запустить Тома', 'Остановить Тома']]
+    keyboard = [['Запустить', 'Остановить', 'Статус']]
 
     reply_markup = ReplyKeyboardMarkup(keyboard,
                                        one_time_keyboard=False,
@@ -25,15 +26,25 @@ def start(update: Update, context: CallbackContext) -> None:
 
 
 def start_dis(update: Update, context: CallbackContext):
-    comm = "systemctl start rut_bot.service"
-    os.system(comm)
-    update.message.reply_text(text.start_dis)
+    res = subprocess.run(["systemctl", "start", "rut_bot.service"])
+    if res.returncode == 0:
+        update.message.reply_text("Бот запущен")
+    else:
+        update.message.reply_text("❌Ошибка")
 
 
 def stop_dis(update: Update, context: CallbackContext):
-    comm = "systemctl stop rut_bot.service"
-    os.system(comm)
-    update.message.reply_text(text.stop_dis)
+    subprocess.run(["systemctl", "stop", "rut_bot.service"])
+    update.message.reply_text("Бот остановлен")
+
+
+def status_dis(update: Update, context: CallbackContext):
+    res = subprocess.run(["systemctl", "is-active", "rut_bot.service"], stdout=subprocess.PIPE, text=True)
+    print(res.returncode)
+    if res.returncode == 0:
+        update.message.reply_text("🟢Активен")
+    else:
+        update.message.reply_text("🔴Выключен")
 
 
 def main():
@@ -44,8 +55,10 @@ def main():
     dispatcher.add_handler(CommandHandler("start", start))
     dispatcher.add_handler(CallbackQueryHandler(start_dis, pattern='UwU'))
     dispatcher.add_handler(CallbackQueryHandler(stop_dis, pattern='UwU'))
-    dispatcher.add_handler(MessageHandler(Filters.regex(r"^Запустить Тома$"), start_dis))
-    dispatcher.add_handler(MessageHandler(Filters.regex(r"^Остановить Тома$"), stop_dis))
+    dispatcher.add_handler(CallbackQueryHandler(status_dis, pattern='UwU'))
+    dispatcher.add_handler(MessageHandler(Filters.regex(r"^Запустить$"), start_dis))
+    dispatcher.add_handler(MessageHandler(Filters.regex(r"^Остановить$"), stop_dis))
+    dispatcher.add_handler(MessageHandler(Filters.regex(r"^Статус$"), status_dis))
 
     updater.start_polling()
 
